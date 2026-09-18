@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MedVisit Pro — Gestión Integral de Visita Médica</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<!-- Leaflet CSS & JS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#070f1e',
+                            900: '#0b1b36',
+                            850: '#0f244a',
+                            800: '#142d59',
+                            700: '#1e407a',
+                        },
+                        cyanbrand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            400: '#2dd4bf',
+                            500: '#06b6d4',
+                            600: '#0891b2',
+                            teal: '#0ea5e9'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .tab-btn.active {
+            color: #0284c7;
+            background-color: #f0f9ff;
+            border-bottom: 2px solid #0284c7;
+            font-weight: 600;
+        }
+        .mobile-tab-btn.active {
+            color: #0284c7;
+            background-color: #f0f9ff;
+            font-weight: 600;
+        }
+        /* Glass card subtle */
+        .glass-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px -3px rgba(11, 27, 54, 0.04), 0 2px 6px -2px rgba(11, 27, 54, 0.02);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+<meta content="web_standard" name="shell-type"/></head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-cyanbrand-500 selection:text-white">
+<!-- Top Institutional Bar (Header) -->
+<header class="bg-navy-900 text-white sticky top-0 z-40 shadow-lg border-b border-navy-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<!-- Brand & Territory -->
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 via-cyan-500 to-teal-400 p-[2px] flex items-center justify-center shadow-md shadow-cyan-500/20">
+<div class="w-full h-full bg-navy-900 rounded-[10px] flex items-center justify-center">
+<i class="w-5 h-5 text-cyan-400" data-lucide="activity"></i>
+</div>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="text-lg font-bold tracking-tight text-white flex items-center">
+                                MedVisit<span class="text-cyan-400 font-extrabold ml-0.5">PRO</span>
+</span>
+<span class="text-[11px] font-semibold bg-sky-950 text-sky-300 border border-sky-700/50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                Región San Miguelito
+                            </span>
+</div>
+<p class="text-xs text-slate-400 font-normal">Plataforma Clínica de Delegación Médica &amp; Farmacias</p>
+</div>
+</div>
+<!-- Right Header Actions (Sync, User Profile, Mobile Menu Button) -->
+<div class="flex items-center gap-3">
+<!-- Status Indicator -->
+<div class="hidden md:flex items-center gap-2 bg-navy-850/80 border border-slate-700/60 rounded-lg px-3 py-1.5 text-xs text-slate-300">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="font-medium">Modo Online</span>
+<span class="text-slate-500">|</span>
+<span class="text-slate-400">Panamá GMT-5</span>
+</div>
+<!-- Sync Button with Offline Badge -->
+<button class="relative flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 active:scale-95 transition-all text-xs font-medium text-cyan-300 border border-cyan-500/30 shadow-sm" id="btn-sync-offline" title="Sincronizar registros locales">
+<i class="w-4 h-4 text-cyan-400" data-lucide="cloud-upload"></i>
+<span class="hidden sm:inline">Sincronizar</span>
+<span class="bg-cyan-500 text-navy-950 text-[10px] font-bold px-1.5 py-0.2 rounded-full ring-2 ring-navy-900" id="offline-badge">0</span>
+</button>
+<!-- User Account / Profile Dropdown simulation -->
+<div class="hidden sm:flex items-center gap-2.5 pl-2 border-l border-slate-700/80">
+<div class="w-8 h-8 rounded-full bg-sky-700/60 border border-sky-400/30 flex items-center justify-center text-xs font-bold text-sky-200 uppercase">
+                            VM
+                        </div>
+<div class="text-left leading-tight hidden lg:block">
+<span class="text-xs font-semibold text-slate-200 block">Lic. Valeria Morales</span>
+<span class="text-[10px] text-slate-400">Visitadora Certificada</span>
+</div>
+<a class="p-1.5 text-slate-400 hover:text-red-400 transition-colors ml-1" href="#logout" title="Cerrar sesión">
+<i class="w-4 h-4" data-lucide="log-out"></i>
+</a>
+</div>
+<!-- Mobile Hamburger Button -->
+<button aria-label="Abrir menú" class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-navy-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 lg:hidden" id="mobileMenuBtn">
+<i class="w-6 h-6" data-lucide="menu"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Desktop Navigation Bar (Tabs) -->
+<div class="hidden lg:block bg-white border-b border-slate-200">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<nav aria-label="Navegación principal" class="flex items-center justify-between space-x-1 overflow-x-auto py-1">
+<div class="flex space-x-1">
+<button class="tab-btn active px-3.5 py-2.5 text-xs tracking-wide rounded-md transition-all flex items-center gap-2 text-slate-600 hover:text-sky-700" data-tab="resumen" onclick="switchTab('resumen')">
+<i class="w-4 h-4" data-lucide="layout-dashboard"></i>
+<span>Resumen</span>
+</button>
+<button class="tab-btn px-3.5 py-2.5 text-xs tracking-wide rounded-md transition-all flex items-center gap-2 text-slate-600 hover:text-sky-700" data-tab="medicos" onclick="switchTab('medicos')">
+<i class="w-4 h-4" data-lucide="stethoscope"></i>
+<span>Médicos</span>
+</button>
+<button class="tab-btn px-3.5 py-2.5 text-xs tracking-wide rounded-md transition-all flex items-center gap-2 text-slate-600 hover:text-sky-700" data-tab="productos" onclick="switchTab('productos')">
+<i class="w-4 h-4" data-lucide="pill"></i>
+<span>Productos</span>
+</button>
+<button class="tab-btn px-3.5 py-2.5 text-xs tracking-wide rounded-md transition-all flex items-center gap-2 text-slate-600 hover:text-sky-700" data-tab="farmacias" onclick="switchTab('farmacias')">
+<i class="w-4 h-4" data-lucide="store"></i>
+<span>Farmacias</span>
+</button>
+<button class="tab-btn px-3.5 py-2.5 text-xs tracking-wide rounded-md transition-all flex items-center gap-2 text-slate-600 hover:text-sky-700" data-tab="registrar" onclick="switchTab('registrar')">
+<i class="w-4 h-4 text-cyan-600" data-lucide="calendar-plus"></i>
+<span class="text-sky-800 font-bold">+ Registrar Visita</span>
+</button>
+<button class="tab-btn px-3.5 py-2.5 text-xs tracking-wide rounded-md transition-all flex items-center gap-2 text-slate-600 hover:text-sky-700" data-tab="visitas" onclick="switchTab('visitas')">
+<i class="w-4 h-4" data-lucide="history"></i>
+<span>Historial</span>
+</button>
+<button class="tab-btn px-3.5 py-2.5 text-xs tracking-wide rounded-md transition-all flex items-center gap-2 text-slate-600 hover:text-sky-700" data-tab="mapa" onclick="switchTab('mapa')">
+<i class="w-4 h-4" data-lucide="map-pin"></i>
+<span>Mapa Cobertura</span>
+</button>
+<button class="tab-btn px-3.5 py-2.5 text-xs tracking-wide rounded-md transition-all flex items-center gap-2 text-slate-600 hover:text-sky-700" data-tab="reportes" onclick="switchTab('reportes')">
+<i class="w-4 h-4" data-lucide="bar-chart-3"></i>
+<span>Reportes &amp; KPIs</span>
+</button>
+<button class="tab-btn px-3.5 py-2.5 text-xs tracking-wide rounded-md transition-all flex items-center gap-2 text-slate-600 hover:text-sky-700" data-tab="plan" onclick="switchTab('plan')">
+<i class="w-4 h-4" data-lucide="target"></i>
+<span>Plan de Ciclo</span>
+</button>
+</div>
+<!-- External links / Print PDF -->
+<div class="flex items-center gap-1 pl-4 border-l border-slate-200">
+<a class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors flex items-center gap-1.5 border border-sky-200" href="reporte_visita.php" target="_blank">
+<i class="w-3.5 h-3.5" data-lucide="printer"></i>
+<span>Informe PDF</span>
+</a>
+</div>
+</nav>
+</div>
+</div>
+</header>
+<!-- Mobile Drawer Overlay & Sidebar -->
+<div class="fixed inset-0 bg-navy-950/70 backdrop-blur-sm z-50 transition-opacity duration-300 opacity-0 pointer-events-none" id="mobileNavBackdrop"></div>
+<div class="fixed top-0 left-0 bottom-0 w-72 bg-navy-900 text-white z-50 transform -translate-x-full transition-transform duration-300 ease-in-out shadow-2xl flex flex-col" id="mobileNav">
+<!-- Mobile Drawer Header -->
+<div class="p-4 border-b border-navy-800 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-navy-950 font-bold">
+<i class="w-5 h-5 text-navy-950" data-lucide="activity"></i>
+</div>
+<div>
+<h3 class="font-bold text-white leading-tight">MedVisit Pro</h3>
+<p class="text-[11px] text-cyan-400">San Miguelito · Panamá</p>
+</div>
+</div>
+<button aria-label="Cerrar menú" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-navy-800" id="mobileNavClose">
+<i class="w-5 h-5" data-lucide="x"></i>
+</button>
+</div>
+<!-- User Brief info in Mobile -->
+<div class="px-4 py-3 bg-navy-850/60 border-b border-navy-800 flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-sky-700 flex items-center justify-center font-bold text-xs text-sky-200">
+                VM
+            </div>
+<div class="text-xs">
+<div class="font-semibold text-white">Lic. Valeria Morales</div>
+<div class="text-[11px] text-slate-400">valeria.m@medvisit.pa</div>
+</div>
+</div>
+<!-- Mobile Navigation Links -->
+<nav class="flex-1 overflow-y-auto p-3 space-y-1">
+<button class="mobile-tab-btn active w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 text-slate-300 hover:text-white hover:bg-navy-800 transition-colors" data-tab="resumen" onclick="switchTabMobile('resumen')">
+<i class="w-4 h-4 text-cyan-400" data-lucide="layout-dashboard"></i>
+<span>Resumen del Mes</span>
+</button>
+<button class="mobile-tab-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 text-slate-300 hover:text-white hover:bg-navy-800 transition-colors" data-tab="medicos" onclick="switchTabMobile('medicos')">
+<i class="w-4 h-4 text-cyan-400" data-lucide="stethoscope"></i>
+<span>Directorio Médicos</span>
+</button>
+<button class="mobile-tab-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 text-slate-300 hover:text-white hover:bg-navy-800 transition-colors" data-tab="productos" onclick="switchTabMobile('productos')">
+<i class="w-4 h-4 text-cyan-400" data-lucide="pill"></i>
+<span>Catálogo Productos</span>
+</button>
+<button class="mobile-tab-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 text-slate-300 hover:text-white hover:bg-navy-800 transition-colors" data-tab="farmacias" onclick="switchTabMobile('farmacias')">
+<i class="w-4 h-4 text-cyan-400" data-lucide="store"></i>
+<span>Visitas a Farmacias</span>
+</button>
+<button class="mobile-tab-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 text-sky-300 font-semibold bg-sky-900/30 border border-sky-700/50 hover:bg-sky-900/50 transition-colors" data-tab="registrar" onclick="switchTabMobile('registrar')">
+<i class="w-4 h-4 text-cyan-300" data-lucide="calendar-plus"></i>
+<span>+ Registrar Visita</span>
+</button>
+<button class="mobile-tab-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 text-slate-300 hover:text-white hover:bg-navy-800 transition-colors" data-tab="visitas" onclick="switchTabMobile('visitas')">
+<i class="w-4 h-4 text-cyan-400" data-lucide="history"></i>
+<span>Historial de Visitas</span>
+</button>
+<button class="mobile-tab-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 text-slate-300 hover:text-white hover:bg-navy-800 transition-colors" data-tab="mapa" onclick="switchTabMobile('mapa')">
+<i class="w-4 h-4 text-cyan-400" data-lucide="map-pin"></i>
+<span>Mapa de Cobertura</span>
+</button>
+<button class="mobile-tab-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 text-slate-300 hover:text-white hover:bg-navy-800 transition-colors" data-tab="reportes" onclick="switchTabMobile('reportes')">
+<i class="w-4 h-4 text-cyan-400" data-lucide="bar-chart-3"></i>
+<span>Reportes &amp; Estadísticas</span>
+</button>
+<button class="mobile-tab-btn w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center gap-3 text-slate-300 hover:text-white hover:bg-navy-800 transition-colors" data-tab="plan" onclick="switchTabMobile('plan')">
+<i class="w-4 h-4 text-cyan-400" data-lucide="target"></i>
+<span>Plan de Visitas</span>
+</button>
+<div class="pt-4 border-t border-navy-800 mt-2 space-y-1">
+<a class="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-3 text-slate-300 hover:bg-navy-800" href="reporte_visita.php" target="_blank">
+<i class="w-4 h-4 text-slate-400" data-lucide="printer"></i>
+<span>Exportar PDF</span>
+</a>
+<a class="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-3 text-rose-400 hover:bg-rose-950/40" href="logout.php">
+<i class="w-4 h-4" data-lucide="log-out"></i>
+<span>Cerrar sesión</span>
+</a>
+</div>
+</nav>
+<div class="p-3 bg-navy-950 text-center text-[10px] text-slate-500 border-t border-navy-800">
+            MedVisit Pro v3.4 · San Miguelito, Panamá
+        </div>
+</div>
+<!-- MAIN CONTENT CONTAINER -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6"><div class="flex flex-col w-full">
+<!-- Feedback Banner / Flash Notice -->
+<div class="w-full bg-emerald-50 rounded-2xl p-4 shadow-sm mb-6 flex items-center justify-between transition-all duration-300" id="statusNotification">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-900 leading-tight">Credencial y perfil médico sincronizados con la nube central</p>
+<p class="text-xs text-slate-600 mt-0.5">Última validación criptográfica: Hoy, 11:42 AM · Servidor Panamá (Región Metropolitana)</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
+        Conexión Cifrada SSL
+      </span>
+<button class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-emerald-100/50 transition-colors" onclick="document.getElementById('statusNotification').remove()">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+</div>
+<!-- Breadcrumb & Direct Action Bar -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+<div class="flex items-center gap-2 text-xs font-medium text-slate-500">
+<a class="hover:text-cyan-600 transition-colors flex items-center gap-1" href="index.php">
+<span class="material-symbols-outlined text-sm">home</span>
+        Inicio
+      </a>
+<span class="text-slate-400">/</span>
+<span class="text-slate-400">Configuración Delegación</span>
+<span class="text-slate-400">/</span>
+<span class="text-slate-900 font-semibold">Credencial de Visitador</span>
+</div>
+<div class="flex items-center gap-2">
+<a class="px-3.5 py-2 rounded-xl bg-white text-slate-700 hover:bg-slate-100 text-xs font-semibold shadow-sm transition-all flex items-center gap-2" href="index.php">
+<span class="material-symbols-outlined text-base">arrow_back</span>
+        Volver al Panel
+      </a>
+<a class="px-3.5 py-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-semibold transition-all flex items-center gap-1.5" href="logout.php">
+<span class="material-symbols-outlined text-base">logout</span>
+        Finalizar Sesión
+      </a>
+</div>
+</div>
+<!-- Primary Asymmetric Layout Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- LEFT COLUMN: Credential Card, Digital Passport & Field Telemetry (4 Cols) -->
+<div class="lg:col-span-4 space-y-6">
+<!-- Primary Credential Card -->
+<div class="bg-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
+<!-- Visual Glow Ambient Underlay -->
+<div class="absolute -top-16 -right-16 w-48 h-48 bg-gradient-to-br from-cyan-400/20 to-sky-600/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-full pointer-events-none"></div>
+<!-- Top Badging inside Card -->
+<div class="relative flex items-center justify-between mb-6">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 text-cyan-300 text-[11px] font-bold tracking-wider uppercase shadow-sm">
+<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            ID: VM-4092
+          </div>
+<span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Certificada CSS</span>
+</div>
+<!-- Avatar & Dynamic Status Pill -->
+<div class="relative flex flex-col items-center text-center">
+<div class="relative mb-4">
+<div class="w-28 h-28 rounded-3xl p-1 bg-gradient-to-tr from-cyan-500 via-sky-600 to-indigo-700 shadow-xl">
+<img class="w-full h-full object-cover rounded-[22px]" data-alt="Close up professional portrait of a Hispanic female medical sales representative named Valeria Morales smiling confident in business medical attire, high resolution corporate health headshot, clean clinical hospital background blur, cinematic soft lighting with teal and navy undertones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP_QUvKD6FFmuaW3FtQ5bKrSC47T2A_90TpotnFwr66Wv3kJcMQQKpHpUyma4XqdO4llwLyMmVUE9AVHAu3RgkOjZWXFdpRhhLi-_Zr5RGpAFl-7ByjLybjGwbWpBPSqLz7Ef-tp0IlGaOwPyYLxFF6aTYAZdn5lod4mi9tbAN5rDTp4IE_cSyyx8CRUJlrjfWiZm4w-aDRFWJuMkKNAEHZDWsyFKh91JNidREa65N-XoncFukizID"/>
+</div>
+<!-- Interactive Photo Swap Badge -->
+<label class="absolute -bottom-2 -right-2 w-9 h-9 rounded-xl bg-slate-900 text-cyan-300 hover:text-white hover:bg-cyan-600 shadow-lg flex items-center justify-center cursor-pointer transition-all active:scale-95" for="avatarUpload" title="Actualizar fotografía de credencial">
+<span class="material-symbols-outlined text-lg">photo_camera</span>
+<input accept="image/*" class="hidden" id="avatarUpload" onchange="previewAvatar(event)" type="file"/>
+</label>
+</div>
+<h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Lic. Valeria Morales</h1>
+<p class="text-xs font-semibold text-cyan-700 mt-0.5">Visitadora Médica Certificada &amp; Colegiada</p>
+<p class="text-[11px] text-slate-500 mt-1">Colegiatura Sanitaria No. 993-MP-PA</p>
+<div class="mt-4 flex flex-wrap justify-center gap-2">
+<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              En Ruta de Campo
+            </span>
+<span class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full bg-sky-50 text-sky-800">
+<span class="material-symbols-outlined text-xs">pin_drop</span>
+              San Miguelito
+            </span>
+</div>
+</div>
+<!-- Cycle Performance Gauge -->
+<div class="mt-6 pt-6 bg-slate-50/80 rounded-2xl p-4">
+<div class="flex items-center justify-between text-xs font-bold text-slate-800 mb-2">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-cyan-600 text-base">donut_large</span>
+              Cuota de Ciclo Mensual
+            </span>
+<span class="text-cyan-700 text-sm font-extrabold">84.5%</span>
+</div>
+<!-- Progress track -->
+<div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden p-0.5">
+<div class="h-full bg-gradient-to-r from-cyan-500 via-sky-600 to-indigo-600 rounded-full w-[84.5%] transition-all duration-1000"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-slate-500 mt-2">
+<span>114 / 135 Médicos Visitados</span>
+<span class="font-medium text-emerald-600">+12% vs mes anterior</span>
+</div>
+</div>
+<!-- Metric Mosaic inside Card -->
+<div class="mt-4 grid grid-cols-2 gap-2 text-left">
+<div class="p-3 bg-white rounded-xl shadow-xs">
+<span class="text-[10px] font-bold text-slate-400 uppercase block">Farmacias Clave</span>
+<span class="text-base font-extrabold text-slate-900 mt-0.5 block">28 Auditadas</span>
+<span class="text-[10px] text-sky-600 font-semibold">100% Cobertura</span>
+</div>
+<div class="p-3 bg-white rounded-xl shadow-xs">
+<span class="text-[10px] font-bold text-slate-400 uppercase block">Muestras Médicas</span>
+<span class="text-base font-extrabold text-slate-900 mt-0.5 block">312 Entregadas</span>
+<span class="text-[10px] text-emerald-600 font-semibold">Sin discrepancias</span>
+</div>
+</div>
+</div>
+<!-- Quick Operational Data & Territory Security Card -->
+<div class="bg-white rounded-3xl p-6 shadow-lg space-y-4">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+<span>Resumen de Territorio</span>
+<span class="material-symbols-outlined text-slate-400 text-sm">shield</span>
+</h3>
+<div class="space-y-3 text-xs">
+<div class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50">
+<span class="material-symbols-outlined text-cyan-600 text-lg">domain</span>
+<div>
+<p class="font-bold text-slate-800">Centros Asignados</p>
+<p class="text-slate-500 text-[11px] leading-snug">Policlínica Manuel M. Valdés, Hosp. Susana Jones Cano &amp; C.S. San Isidro</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50">
+<span class="material-symbols-outlined text-cyan-600 text-lg">calendar_today</span>
+<div>
+<p class="font-bold text-slate-800">Fecha de Alta Institucional</p>
+<p class="text-slate-500 text-[11px]">14 de Febrero de 2022 (3 años en territorio)</p>
+</div>
+</div>
+<div class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50">
+<span class="material-symbols-outlined text-cyan-600 text-lg">devices</span>
+<div>
+<p class="font-bold text-slate-800">Terminal de Campo Vinculada</p>
+<p class="text-slate-500 text-[11px]">iPad Pro 11" · MedVisit Mobile v3.4.1 (Sync OK)</p>
+</div>
+</div>
+</div>
+<!-- Download Badge or Quick PDF export action -->
+<a class="w-full py-2.5 px-4 rounded-xl bg-slate-900 text-cyan-300 hover:text-white hover:bg-slate-800 text-xs font-bold transition-colors flex items-center justify-center gap-2 shadow-sm" href="reporte_visita.php" target="_blank">
+<span class="material-symbols-outlined text-base">badge</span>
+          Descargar Credencial Digital (PDF)
+        </a>
+</div>
+</div>
+<!-- RIGHT COLUMN: Editable Information & System Toggles (8 Cols) -->
+<div class="lg:col-span-8 space-y-6">
+<!-- Primary Profile Edit Form Container -->
+<form class="space-y-6" id="perfilForm" onsubmit="guardarPerfil(event)">
+<!-- Section 1: Professional Identification -->
+<div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl">
+<div class="flex items-center justify-between pb-4 mb-6">
+<div>
+<h2 class="text-base font-extrabold text-slate-900 tracking-tight">Ficha Profesional del Visitador</h2>
+<p class="text-xs text-slate-500 mt-0.5">Información reglamentaria exhibida en reportes de visitas a médicos y farmacias.</p>
+</div>
+<span class="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-cyan-700 bg-cyan-50 px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-sm">verified_user</span> Verificado
+            </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<!-- Full Name -->
+<div class="space-y-1.5 md:col-span-2">
+<label class="text-xs font-bold text-slate-700 flex items-center gap-1.5" for="nombre_completo">
+<span>Nombre Completo y Título Profesional</span>
+<span class="text-rose-500">*</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">person</span>
+<input class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 text-slate-900 text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all shadow-inner" id="nombre_completo" name="nombre_completo" required="" type="text" value="Lic. Valeria Morales"/>
+</div>
+</div>
+<!-- Corporate Email (Read-Only) -->
+<div class="space-y-1.5">
+<label class="text-xs font-bold text-slate-700 flex items-center justify-between" for="correo_corporativo">
+<span>Correo Electrónico Institucional</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bloqueado RRHH</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">mail_lock</span>
+<input class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-100 text-slate-500 text-xs font-medium cursor-not-allowed select-none" id="correo_corporativo" name="correo_corporativo" readonly="" type="email" value="valeria.morales@medvisit.pa"/>
+<span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-600 text-base" title="Dominio Corporativo Validado">check_circle</span>
+</div>
+<p class="text-[11px] text-slate-400">Para cambios de correo contactar a soporte@medvisit.pa</p>
+</div>
+<!-- Field Contact Phone (+507 Panama) -->
+<div class="space-y-1.5">
+<label class="text-xs font-bold text-slate-700 flex items-center gap-1.5" for="telefono_movil">
+<span>Móvil de Operaciones (Panamá)</span>
+<span class="text-rose-500">*</span>
+</label>
+<div class="relative flex">
+<div class="inline-flex items-center gap-1 px-3 bg-slate-100 rounded-l-xl text-xs font-bold text-slate-600 select-none">
+<span>🇵🇦</span>
+<span>+507</span>
+</div>
+<input class="w-full pl-3.5 pr-4 py-2.5 rounded-r-xl bg-slate-50 text-slate-900 text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all shadow-inner" id="telefono_movil" name="telefono_movil" required="" type="tel" value="6842-1920"/>
+</div>
+<p class="text-[11px] text-slate-400">Canal directo para alertas de farmacia y supervisión</p>
+</div>
+<!-- Zone / Jurisdiction Assignment -->
+<div class="space-y-1.5 md:col-span-2">
+<label class="text-xs font-bold text-slate-700 flex items-center justify-between" for="zona_sector">
+<span>Sector y Circuito Territorial Asignado</span>
+<span class="text-xs text-cyan-600 font-semibold">Ciclo Activo 2025-Q1</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">explore</span>
+<select class="w-full pl-10 pr-8 py-2.5 rounded-xl bg-slate-50 text-slate-900 text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all shadow-inner" id="zona_sector" name="zona_sector">
+<option selected="" value="san_miguelito_completo">Región San Miguelito — Policlínica Manuel M. Valdés &amp; San Isidro</option>
+<option value="villa_lucre_brisas">Circuito Este — Villa Lucre, Brisas del Golf &amp; El Crisol</option>
+<option value="san_isidro_torrijos">Circuito Norte — San Isidro, Torrijos Carter &amp; Cerro Batea</option>
+<option value="paraíso_veranillo">Circuito Central — Paraíso, Mateo Iturralde &amp; Veranillo</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 2: Security, Access Token & Password Modification -->
+<div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl">
+<div class="flex items-center justify-between pb-4 mb-6">
+<div>
+<h2 class="text-base font-extrabold text-slate-900 tracking-tight">Seguridad y Credencial de Acceso</h2>
+<p class="text-xs text-slate-500 mt-0.5">Mantén tu cuenta protegida para resguardar la confidencialidad de prescripciones y fichas médicas.</p>
+</div>
+<div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">key</span>
+</div>
+</div>
+<div class="p-3.5 rounded-2xl bg-slate-50 mb-5 flex items-start gap-3">
+<span class="material-symbols-outlined text-sky-600 text-lg mt-0.5">info</span>
+<p class="text-xs text-slate-600 leading-relaxed">
+              Dejar los siguientes campos en blanco si deseas <strong class="text-slate-800">conservar tu contraseña actual</strong>. Si defines una nueva clave, cerrará tus sesiones de campo en otros navegadores.
+            </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<!-- New Password -->
+<div class="space-y-1.5">
+<label class="text-xs font-bold text-slate-700" for="nueva_clave">Nueva Contraseña de Acceso</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">lock</span>
+<input class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all shadow-inner" id="nueva_clave" name="nueva_clave" oninput="evaluarFortalezaClave(this.value)" placeholder="••••••••••••" type="password"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1" id="btnToggle1" onclick="togglePassVisibility('nueva_clave', 'btnToggle1')" type="button">
+<span class="material-symbols-outlined text-base">visibility</span>
+</button>
+</div>
+<!-- Password Strength Visual Indicator -->
+<div class="space-y-1 pt-1">
+<div class="flex items-center justify-between text-[10px] font-bold">
+<span class="text-slate-400 uppercase">Seguridad:</span>
+<span class="text-slate-400" id="strengthLabel">Sin cambios</span>
+</div>
+<div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden flex gap-1">
+<div class="h-full w-1/4 bg-slate-300 rounded-full transition-colors duration-300" id="bar1"></div>
+<div class="h-full w-1/4 bg-slate-300 rounded-full transition-colors duration-300" id="bar2"></div>
+<div class="h-full w-1/4 bg-slate-300 rounded-full transition-colors duration-300" id="bar3"></div>
+<div class="h-full w-1/4 bg-slate-300 rounded-full transition-colors duration-300" id="bar4"></div>
+</div>
+</div>
+</div>
+<!-- Confirm Password -->
+<div class="space-y-1.5">
+<label class="text-xs font-bold text-slate-700" for="confirmar_clave">Confirmar Nueva Contraseña</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">lock_reset</span>
+<input class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all shadow-inner" id="confirmar_clave" name="confirmar_clave" oninput="comprobarCoincidencia()" placeholder="••••••••••••" type="password"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1" id="btnToggle2" onclick="togglePassVisibility('confirmar_clave', 'btnToggle2')" type="button">
+<span class="material-symbols-outlined text-base">visibility</span>
+</button>
+</div>
+<p class="text-[11px] text-slate-400" id="coincidenciaMsg">Mínimo 8 caracteres alfanuméricos recomendados.</p>
+</div>
+</div>
+</div>
+<!-- Section 3: Field Application Preferences & Automation Toggles -->
+<div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl">
+<div class="flex items-center justify-between pb-4 mb-6">
+<div>
+<h2 class="text-base font-extrabold text-slate-900 tracking-tight">Preferencias Operativas en Campo</h2>
+<p class="text-xs text-slate-500 mt-0.5">Ajustes directos del motor de sincronización y registro georreferenciado.</p>
+</div>
+<div class="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">tune</span>
+</div>
+</div>
+<div class="space-y-4">
+<!-- Toggle 1: Auto Offline Sync -->
+<label class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100/70 transition-colors cursor-pointer">
+<div class="flex items-start gap-3 pr-4">
+<div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center mt-0.5 shrink-0">
+<span class="material-symbols-outlined text-lg">cloud_sync</span>
+</div>
+<div>
+<span class="text-xs font-bold text-slate-800 block">Sincronización Automática Offline en Policlínicas</span>
+<span class="text-[11px] text-slate-500 block leading-tight">Almacenar visitas en búfer seguro SQLite local cuando no haya cobertura 4G/5G en sótanos hospitalarios.</span>
+</div>
+</div>
+<div class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" id="pref_sync" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+</div>
+</label>
+<!-- Toggle 2: GPS High Precision Geofence -->
+<label class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100/70 transition-colors cursor-pointer">
+<div class="flex items-start gap-3 pr-4">
+<div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mt-0.5 shrink-0">
+<span class="material-symbols-outlined text-lg">near_me</span>
+</div>
+<div>
+<span class="text-xs font-bold text-slate-800 block">Geolocalización GPS de Alta Precisión al Iniciar Visita</span>
+<span class="text-[11px] text-slate-500 block leading-tight">Captura automáticamente la coordenada GPS para validar la presencia dentro del radio de 80m del consultorio.</span>
+</div>
+</div>
+<div class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" id="pref_gps" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+</div>
+</label>
+<!-- Toggle 3: Daily Target Alerts -->
+<label class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-slate-100/70 transition-colors cursor-pointer">
+<div class="flex items-start gap-3 pr-4">
+<div class="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center mt-0.5 shrink-0">
+<span class="material-symbols-outlined text-lg">notifications_active</span>
+</div>
+<div>
+<span class="text-xs font-bold text-slate-800 block">Notificaciones Push de Cobertura de Ciclo San Miguelito</span>
+<span class="text-[11px] text-slate-500 block leading-tight">Aviso matutino con el ruteo sugerido de médicos prioritarios tipo A con visitas pendientes.</span>
+</div>
+</div>
+<div class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" id="pref_alerts" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+</div>
+</label>
+</div>
+</div>
+<!-- Sticky Form Submission / Action Footer -->
+<div class="p-6 bg-slate-900 rounded-3xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-cyan-400">
+<span class="material-symbols-outlined text-xl">save</span>
+</div>
+<div>
+<p class="text-xs font-bold text-white">¿Confirmar cambios de credencial?</p>
+<p class="text-[11px] text-slate-400">Los cambios se propagan de inmediato al panel de supervisión médica.</p>
+</div>
+</div>
+<div class="flex items-center gap-3 w-full sm:w-auto">
+<a class="flex-1 sm:flex-none text-center px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition-colors" href="index.php">
+              Cancelar
+            </a>
+<button class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-sky-600 hover:from-cyan-400 hover:to-sky-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-cyan-500/25 active:scale-95 transition-all flex items-center justify-center gap-2" id="btnGuardar" type="submit">
+<span class="material-symbols-outlined text-base">check_circle</span>
+<span>Guardar Cambios</span>
+</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+<!-- Interactive JavaScript -->
+<script>
+    // Password Strength Meter Logic
+    function evaluarFortalezaClave(val) {
+      const b1 = document.getElementById('bar1');
+      const b2 = document.getElementById('bar2');
+      const b3 = document.getElementById('bar3');
+      const b4 = document.getElementById('bar4');
+      const lbl = document.getElementById('strengthLabel');
+
+      // Reset
+      [b1, b2, b3, b4].forEach(b => {
+        b.className = 'h-full w-1/4 bg-slate-300 rounded-full transition-colors duration-300';
+      });
+
+      if (!val || val.length === 0) {
+        lbl.textContent = 'Sin cambios';
+        lbl.className = 'text-slate-400';
+        return;
+      }
+
+      let score = 0;
+      if (val.length >= 6) score++;
+      if (val.length >= 10) score++;
+      if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      if (score === 1) {
+        b1.className = 'h-full w-1/4 bg-rose-500 rounded-full transition-colors duration-300';
+        lbl.textContent = 'Débil';
+        lbl.className = 'text-rose-500';
+      } else if (score === 2) {
+        b1.className = 'h-full w-1/4 bg-amber-500 rounded-full transition-colors duration-300';
+        b2.className = 'h-full w-1/4 bg-amber-500 rounded-full transition-colors duration-300';
+        lbl.textContent = 'Aceptable';
+        lbl.className = 'text-amber-500';
+      } else if (score === 3) {
+        b1.className = 'h-full w-1/4 bg-sky-500 rounded-full transition-colors duration-300';
+        b2.className = 'h-full w-1/4 bg-sky-500 rounded-full transition-colors duration-300';
+        b3.className = 'h-full w-1/4 bg-sky-500 rounded-full transition-colors duration-300';
+        lbl.textContent = 'Buena';
+        lbl.className = 'text-sky-500';
+      } else if (score >= 4) {
+        [b1, b2, b3, b4].forEach(b => {
+          b.className = 'h-full w-1/4 bg-emerald-500 rounded-full transition-colors duration-300';
+        });
+        lbl.textContent = 'Muy Robusta';
+        lbl.className = 'text-emerald-600 font-bold';
+      }
+    }
+
+    // Password Match Validation
+    function comprobarCoincidencia() {
+      const p1 = document.getElementById('nueva_clave').value;
+      const p2 = document.getElementById('confirmar_clave').value;
+      const msg = document.getElementById('coincidenciaMsg');
+
+      if (p2.length === 0) {
+        msg.textContent = 'Mínimo 8 caracteres alfanuméricos recomendados.';
+        msg.className = 'text-[11px] text-slate-400';
+        return;
+      }
+
+      if (p1 === p2) {
+        msg.textContent = '✓ Las contraseñas coinciden exactamente';
+        msg.className = 'text-[11px] text-emerald-600 font-semibold';
+      } else {
+        msg.textContent = '✕ Las contraseñas no coinciden';
+        msg.className = 'text-[11px] text-rose-500 font-semibold';
+      }
+    }
+
+    // Toggle Password Visibility
+    function togglePassVisibility(inputId, btnId) {
+      const inp = document.getElementById(inputId);
+      const btn = document.getElementById(btnId);
+      const icon = btn.querySelector('.material-symbols-outlined');
+
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.textContent = 'visibility_off';
+        icon.classList.add('text-cyan-600');
+      } else {
+        inp.type = 'password';
+        icon.textContent = 'visibility';
+        icon.classList.remove('text-cyan-600');
+      }
+    }
+
+    // Avatar preview simulation
+    function previewAvatar(event) {
+      const file = event.target.files[0];
+      if (file) {
+        if (typeof showToast === 'function') {
+          showToast('Nueva foto cargada. Se guardará al actualizar el perfil.', 'info');
+        }
+      }
+    }
+
+    // Form Save Simulation with Feedback
+    function guardarPerfil(event) {
+      event.preventDefault();
+      const btn = document.getElementById('btnGuardar');
+      const originalText = btn.innerHTML;
+
+      btn.disabled = true;
+      btn.innerHTML = `
+        <span class="material-symbols-outlined text-base animate-spin">sync</span>
+        <span>Guardando...</span>
+      `;
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        
+        if (typeof showToast === 'function') {
+          showToast('✓ Perfil institucional actualizado con éxito.', 'success');
+        } else {
+          alert('Perfil institucional actualizado con éxito.');
+        }
+
+        // Scroll smoothly to top feedback
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 900);
+    }
+  </script>
+</div></main>
+<!-- ════════════════ MODAL: MÉDICO ════════════════ -->
+<div class="fixed inset-0 bg-navy-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden" id="modal-medico">
+<div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 relative animate-fade-in">
+<div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center">
+<i class="w-4 h-4" data-lucide="stethoscope"></i>
+</div>
+<h3 class="text-base font-bold text-navy-900" id="modal-medico-titulo">Alta de Nuevo Médico</h3>
+</div>
+<button class="text-slate-400 hover:text-slate-600 p-1" onclick="cerrarModalMedico()">
+<i class="w-5 h-5" data-lucide="x"></i>
+</button>
+</div>
+<form class="space-y-4 text-xs" id="form-medico" onsubmit="event.preventDefault(); alert('Médico registrado correctamente'); cerrarModalMedico();">
+<div>
+<label class="block font-semibold text-slate-700 mb-1">Nombre Completo *</label>
+<input class="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 outline-none focus:border-cyan-500" placeholder="Dr/a. Nombre y Apellido" required="" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div>
+<label class="block font-semibold text-slate-700 mb-1">Especialidad *</label>
+<select class="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 outline-none" required="">
+<option value="">Seleccione...</option>
+<option value="Ginecología">Ginecología</option>
+<option value="Medicina General">Medicina General</option>
+<option value="Obstetricia">Obstetricia</option>
+<option value="Pediatría">Pediatría</option>
+<option value="Medicina Interna">Medicina Interna</option>
+<option value="Farmacéutico">Farmacéutico</option>
+</select>
+</div>
+<div>
+<label class="block font-semibold text-slate-700 mb-1">Sector (San Miguelito)</label>
+<select class="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 outline-none">
+<option value="San Miguelito">San Miguelito Centro</option>
+<option value="Villa Lucre">Villa Lucre</option>
+<option value="San Isidro">San Isidro</option>
+<option value="Paraíso">Paraíso</option>
+<option value="Brisas del Golf">Brisas del Golf</option>
+<option value="Amelia Denis">Amelia Denis</option>
+</select>
+</div>
+</div>
+<div>
+<label class="block font-semibold text-slate-700 mb-1">Centro Asistencial / Hospital / Clínica</label>
+<input class="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 outline-none" placeholder="Ej: Policlínica Manuel María Valdés" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+<div>
+<label class="block font-semibold text-slate-700 mb-1">Latitud GPS</label>
+<input class="w-full p-2 rounded border border-slate-300 bg-slate-100 text-slate-600" id="med-lat" readonly="" type="text" value="9.0416"/>
+</div>
+<div>
+<label class="block font-semibold text-slate-700 mb-1">Longitud GPS</label>
+<input class="w-full p-2 rounded border border-slate-300 bg-slate-100 text-slate-600" id="med-lng" readonly="" type="text" value="-79.5020"/>
+</div>
+<div class="col-span-2 text-right">
+<button class="text-xs text-cyan-600 hover:text-cyan-700 font-semibold inline-flex items-center gap-1" onclick="detectarGPS()" type="button">
+<i class="w-3.5 h-3.5" data-lucide="navigation"></i> Autodetectar ubicación actual
+                        </button>
+</div>
+</div>
+<div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+<button class="px-4 py-2 rounded-lg text-slate-600 hover:text-slate-800 font-medium" onclick="cerrarModalMedico()" type="button">Cancelar</button>
+<button class="px-5 py-2 rounded-lg bg-navy-900 hover:bg-navy-800 text-white font-semibold" type="submit">Guardar Médico</button>
+</div>
+</form>
+</div>
+</div>
+<!-- ════════════════ MODAL: PRODUCTO ════════════════ -->
+<div class="fixed inset-0 bg-navy-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden" id="modal-producto">
+<div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 relative">
+<div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center">
+<i class="w-4 h-4" data-lucide="pill"></i>
+</div>
+<h3 class="text-base font-bold text-navy-900">Registrar Producto Farmacéutico</h3>
+</div>
+<button class="text-slate-400 hover:text-slate-600 p-1" onclick="cerrarModalProducto()">
+<i class="w-5 h-5" data-lucide="x"></i>
+</button>
+</div>
+<form class="space-y-4 text-xs" onsubmit="event.preventDefault(); alert('Producto agregado exitosamente'); cerrarModalProducto();">
+<div>
+<label class="block font-semibold text-slate-700 mb-1">Nombre Comercial del Fármaco *</label>
+<input class="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 outline-none" id="prod-nombre" placeholder="Ej: CardioVasic 20mg" required=""/>
+</div>
+<div>
+<label class="block font-semibold text-slate-700 mb-1">Línea / Especialidad *</label>
+<input class="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 outline-none" id="prod-categoria" placeholder="Ej: Cardiología, Pediatría..." required=""/>
+</div>
+<div>
+<label class="block font-semibold text-slate-700 mb-1">Material Promocional Adjunto</label>
+<input class="w-full p-2.5 rounded-lg border border-slate-300 text-slate-800 outline-none" id="prod-material" placeholder="Monografía, estudios clínicos, folletos..."/>
+</div>
+<div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+<button class="px-4 py-2 rounded-lg text-slate-600" onclick="cerrarModalProducto()" type="button">Cancelar</button>
+<button class="px-5 py-2 rounded-lg bg-navy-900 text-white font-semibold" type="submit">Guardar</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Toast Notification Container -->
+<div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none" id="toast-container"></div>
+<!-- Scripts Logic -->
+<script>
+        // Init Lucide icons
+        lucide.createIcons();
+
+        // Tabs Logic
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show target
+            const target = document.getElementById('tab-' + tabId);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+
+            // Update desktop active tab
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Update mobile active tab
+            document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // If map tab, trigger invalidateSize
+            if (tabId === 'mapa') {
+                setTimeout(initOrRefreshMap, 200);
+            }
+
+            // If reportes tab, initialize charts
+            if (tabId === 'reportes') {
+                setTimeout(initCharts, 200);
+            }
+        }
+
+        // Mobile Switch Tab wrapper
+        function switchTabMobile(tabId) {
+            switchTab(tabId);
+            closeMobileNav();
+        }
+
+        // Mobile Nav Drawer Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileNavClose = document.getElementById('mobileNavClose');
+        const mobileNav = document.getElementById('mobileNav');
+        const mobileNavBackdrop = document.getElementById('mobileNavBackdrop');
+
+        function openMobileNav() {
+            mobileNav.classList.remove('-translate-x-full');
+            mobileNavBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+            mobileNavBackdrop.classList.add('opacity-100');
+        }
+
+        function closeMobileNav() {
+            mobileNav.classList.add('-translate-x-full');
+            mobileNavBackdrop.classList.remove('opacity-100');
+            mobileNavBackdrop.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        mobileMenuBtn.addEventListener('click', openMobileNav);
+        mobileNavClose.addEventListener('click', closeMobileNav);
+        mobileNavBackdrop.addEventListener('click', closeMobileNav);
+
+        // Modals
+        function abrirModalMedico() {
+            document.getElementById('modal-medico').classList.remove('hidden');
+        }
+        function cerrarModalMedico() {
+            document.getElementById('modal-medico').classList.add('hidden');
+        }
+        function abrirModalProducto() {
+            document.getElementById('modal-producto').classList.remove('hidden');
+        }
+        function cerrarModalProducto() {
+            document.getElementById('modal-producto').classList.add('hidden');
+        }
+
+        function detectarGPS() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        document.getElementById('med-lat').value = pos.coords.latitude.toFixed(5);
+                        document.getElementById('med-lng').value = pos.coords.longitude.toFixed(5);
+                        showToast("Ubicación GPS detectada correctamente", "success");
+                    },
+                    () => {
+                        showToast("Simulando coordenadas San Miguelito", "info");
+                        document.getElementById('med-lat').value = "9.03451";
+                        document.getElementById('med-lng').value = "-79.49821";
+                    }
+                );
+            }
+        }
+
+        function prepararVisita(nombreMedico) {
+            switchTab('registrar');
+            const select = document.getElementById('visita-medico');
+            for (let i = 0; i < select.options.length; i++) {
+                if (select.options[i].text.includes(nombreMedico)) {
+                    select.selectedIndex = i;
+                    break;
+                }
+            }
+            showToast(`Formulario preparado para ${nombreMedico}`, 'info');
+        }
+
+        function guardarVisita(e) {
+            e.preventDefault();
+            showToast("Visita médica guardada exitosamente en el servidor", "success");
+            setTimeout(() => {
+                switchTab('visitas');
+            }, 800);
+        }
+
+        function refreshSummary() {
+            showToast("Indicadores de San Miguelito actualizados", "info");
+        }
+
+        // Toast feedback
+        function showToast(msg, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bg = type === 'success' ? 'bg-navy-900 border-l-4 border-cyan-400 text-white' : 'bg-slate-900 text-white border-l-4 border-sky-400';
+            toast.className = `p-3.5 rounded-lg shadow-xl text-xs font-medium max-w-xs transition-all transform duration-300 pointer-events-auto flex items-center gap-2 ${bg}`;
+            toast.innerHTML = `<span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-x-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Map Setup (Leaflet San Miguelito, Panama)
+        let mapInstance = null;
+        function initOrRefreshMap() {
+            const container = document.getElementById('mapa-container');
+            if (!container) return;
+
+            if (!mapInstance) {
+                // San Miguelito Coordinates approx: 9.043, -79.505
+                mapInstance = L.map('mapa-container').setView([9.0430, -79.5050], 13);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap | MedVisit Pro'
+                }).addTo(mapInstance);
+
+                // Doctors Pin Data
+                const locations = [
+                    { name: "Policlínica Manuel María Valdés", dr: "Dr. Alejandro Castillo", lat: 9.0380, lng: -79.5010, visited: false },
+                    { name: "Centro de Salud San Isidro", dr: "Dra. Marcela Rodríguez", lat: 9.0620, lng: -79.5210, visited: true },
+                    { name: "Hospital Susana Jones Cano", dr: "Dra. Carmen González", lat: 9.0490, lng: -79.4890, visited: true },
+                    { name: "Clínica San Judas Tadeo", dr: "Dr. Jorge Luis Mendoza", lat: 9.0410, lng: -79.4820, visited: false }
+                ];
+
+                locations.forEach(loc => {
+                    const color = loc.visited ? '#10b981' : '#f43f5e';
+                    const marker = L.circleMarker([loc.lat, loc.lng], {
+                        radius: 8,
+                        fillColor: color,
+                        color: "#ffffff",
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    }).addTo(mapInstance);
+
+                    marker.bindPopup(`
+                        <div style="font-family:sans-serif; font-size:12px; line-height:1.4">
+                            <strong style="color:#0b1b36; font-size:13px">${loc.name}</strong><br>
+                            <span style="color:#0284c7">${loc.dr}</span><br>
+                            <span style="color:${loc.visited ? '#059669':'#e11d48'}; font-weight:bold">
+                                ${loc.visited ? '✓ Visitado este mes' : '⚠ Pendiente de visita'}
+                            </span>
+                        </div>
+                    `);
+                });
+            } else {
+                mapInstance.invalidateSize();
+            }
+        }
+
+        // Charts initialization
+        let chartsInitialized = false;
+        function initCharts() {
+            if (chartsInitialized) return;
+            chartsInitialized = true;
+
+            // 1. Cobertura Doughnut
+            const ctxCob = document.getElementById('chart-cobertura')?.getContext('2d');
+            if (ctxCob) {
+                new Chart(ctxCob, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Médicos Visitados (84.5%)', 'Pendientes (15.5%)'],
+                        datasets: [{
+                            data: [84.5, 15.5],
+                            backgroundColor: ['#06b6d4', '#e2e8f0'],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '72%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { boxWidth: 12, font: { family: 'Plus Jakarta Sans', size: 11 } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. Frecuencia Bar
+            const ctxFreq = document.getElementById('chart-frecuencia')?.getContext('2d');
+            if (ctxFreq) {
+                new Chart(ctxFreq, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4 (Actual)'],
+                        datasets: [{
+                            label: 'Visitas Efectivas',
+                            data: [34, 38, 41, 29],
+                            backgroundColor: '#0284c7',
+                            borderRadius: 6
+                        }, {
+                            label: 'Canceladas',
+                            data: [2, 3, 1, 2],
+                            backgroundColor: '#cbd5e1',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                        },
+                        scales: {
+                            y: { grid: { color: '#f1f5f9' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // 3. Ranking Horizontal Bar
+            const ctxRank = document.getElementById('chart-ranking')?.getContext('2d');
+            if (ctxRank) {
+                new Chart(ctxRank, {
+                    type: 'bar',
+                    indexAxis: 'y',
+                    data: {
+                        labels: ['CardioVasic 20mg', 'AmoxiClav Dúo', 'FeminaPlus 28', 'NeuroRelief B', 'Gastrolen 40mg'],
+                        datasets: [{
+                            label: 'Impactos / Presentaciones',
+                            data: [78, 62, 45, 30, 24],
+                            backgroundColor: '#0d9488',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { color: '#f1f5f9' } },
+                            y: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // 4. Prescripciones Line Chart
+            const ctxPresc = document.getElementById('chart-prescripciones')?.getContext('2d');
+            if (ctxPresc) {
+                new Chart(ctxPresc, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jun', 'Jul', 'Ago', 'Sep', 'Oct (Est.)'],
+                        datasets: [{
+                            label: 'Recetas Auditadas (San Miguelito)',
+                            data: [320, 360, 410, 480, 560],
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.08)',
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#0284c7'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+                        scales: {
+                            y: { grid: { color: '#f1f5f9' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Init on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check offline sync button simulation
+            document.getElementById('btn-sync-offline').addEventListener('click', () => {
+                showToast("Sincronizando con el servidor central...", "info");
+                setTimeout(() => {
+                    document.getElementById('offline-badge').textContent = '0';
+                    showToast("¡Base de datos actualizada al 100%!", "success");
+                }, 1000);
+            });
+        });
+    </script>
+</body></html>
