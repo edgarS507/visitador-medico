@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/auth.php'; require_login(); $u = usuario_actual(); ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
