@@ -79,6 +79,7 @@ const MedicosManager = (() => {
         }
 
         modal.classList.add('open');
+        if (!id && typeof obtenerUbicacion === 'function') obtenerUbicacion();
     }
 
     function cerrarModal() {

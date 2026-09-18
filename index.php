@@ -44,12 +44,17 @@
     <!-- ══ NAVIGATION ══════════════════════════════════════════════ -->
     <nav class="tabs-nav" role="navigation" aria-label="Secciones principales">
         <button class="tablink" data-tab="resumen"   aria-controls="tab-resumen">📊 Resumen</button>
-        <button class="tablink" data-tab="medicos"   aria-controls="tab-medicos">👨‍⚕️ Médicos</button>
+        <button class="tablink" data-tab="medicos" aria-controls="tab-medicos">👨‍⚕️ Médicos</button>
+        <button class="tablink" data-tab="productos" aria-controls="tab-productos">💊 Productos</button>
+        <button class="tablink" data-tab="farmacias" aria-controls="tab-farmacias">🏪 Farmacias</button>
         <button class="tablink" data-tab="registrar" aria-controls="tab-registrar">➕ Registrar Visita</button>
         <button class="tablink" data-tab="visitas"   aria-controls="tab-visitas">📋 Historial</button>
         <button class="tablink" data-tab="mapa"      aria-controls="tab-mapa">🗺 Mapa</button>
         <button class="tablink" data-tab="reportes"  aria-controls="tab-reportes">📈 Reportes</button>
-        <button class="tablink" data-tab="plan"      aria-controls="tab-plan">🎯 Plan</button>
+        <button class="tablink" data-tab="plan" aria-controls="tab-plan">🎯 Plan</button>
+        <a class="tablink" href="reporte_visita.php" target="_blank">🖨 PDF</a>
+        <a class="tablink" href="perfil.php">👤 <?=htmlspecialchars($u['nombre'])?></a>
+        <a class="tablink" href="logout.php">Salir</a>
     </nav>
 
     <!-- ══ MAIN ════════════════════════════════════════════════════ -->
@@ -251,6 +256,8 @@
 
         </section>
 
+        <section id="tab-productos" class="tab-content" role="tabpanel"><div class="section-header"><div><h2 class="section-title">Productos</h2><p class="section-subtitle">Catálogo para promoción y visitas</p></div><button class="btn btn-primary" onclick="ProductosManager.abrirModal()">+ Nuevo producto</button></div><div class="card"><div id="productos-lista"></div></div></section>
+        <section id="tab-farmacias" class="tab-content" role="tabpanel"><div class="section-header"><div><h2 class="section-title">Visitas a Farmacias</h2><p class="section-subtitle">Transferencia, stock y pedidos sugeridos</p></div><button class="btn btn-primary" type="button" onclick="FarmaciasManager.nueva()">+ Nueva farmacia</button></div><div class="card"><form id="form-visita-farmacia" class="form-grid"><select id="farm-vis-farmacia" required><option value="">Seleccione farmacia</option></select><input type="date" id="farm-vis-fecha" required><input id="farm-vis-stock" placeholder="Stock de productos"><input id="farm-vis-pedido" placeholder="Pedido sugerido"><textarea id="farm-vis-observaciones" placeholder="Observaciones"></textarea><button class="btn btn-primary">Registrar visita</button></form><hr class="divider"><div id="farmacias-lista"></div></div></section>
         <!-- ━━━━━━ TAB: REPORTES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
         <section id="tab-reportes" class="tab-content" role="tabpanel">
 
@@ -373,12 +380,12 @@
                     <input type="text" id="med-centro" placeholder="Hospital, Centro de Salud…">
                 </div>
                 <div class="form-group">
-                    <label for="med-lat">Latitud (opcional)</label>
-                    <input type="number" id="med-lat" step="any" placeholder="9.0333">
+                    <label for="med-lat">Latitud *</label>
+                    <input type="number" id="med-lat" step="any" placeholder="Detectando…" required readonly><button type="button" class="btn btn-ghost btn-sm geo-btn" onclick="obtenerUbicacion()">📍 Obtener ubicación</button>
                 </div>
                 <div class="form-group">
-                    <label for="med-lng">Longitud (opcional)</label>
-                    <input type="number" id="med-lng" step="any" placeholder="-79.5000">
+                    <label for="med-lng">Longitud *</label>
+                    <input type="number" id="med-lng" step="any" placeholder="Detectando…" required readonly>
                 </div>
             </div>
             <div class="modal-footer">
@@ -389,6 +396,7 @@
     </div>
 </div>
 
+<div id="modal-producto" class="modal-overlay"><div class="modal"><div class="modal-header"><span class="modal-title" id="modal-producto-titulo">Nuevo Producto</span><button class="modal-close" onclick="ProductosManager.cerrarModal()">✕</button></div><form id="form-producto"><div class="form-grid"><input type="hidden" id="prod-id"><label>Nombre *<input id="prod-nombre" required></label><label>Categoría *<input id="prod-categoria" required></label><label class="span-2">Material promocional<input id="prod-material"></label></div><div class="modal-footer"><button type="button" class="btn btn-ghost" onclick="ProductosManager.cerrarModal()">Cancelar</button><button class="btn btn-primary">Guardar</button></div></form></div></div>
 <!-- ══ TOAST CONTAINER ══════════════════════════════════════════════ -->
 <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
@@ -398,6 +406,7 @@
 
 <script src="js/apiClient.js"></script>
 <script src="js/medicosManager.js"></script>
+<script src="js/productosManager.js"></script>
 <script src="js/visitasManager.js"></script>
 <script src="js/mapManager.js"></script>
 <script src="js/chartsManager.js"></script>

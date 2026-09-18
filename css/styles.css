@@ -897,3 +897,7 @@ hr.divider {
     border-top: 1px solid var(--border);
     margin: 20px 0;
 }
+/* Nuevas vistas: autenticación, listados y reportes */
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top right,rgba(37,99,235,.18),transparent 42%),var(--bg)}
+.login-card{width:min(420px,100%);display:flex;flex-direction:column;gap:14px}.login-card h1{margin:0;font-size:26px}.login-card label{display:flex;flex-direction:column;gap:6px;color:var(--text-2);font-size:13px}.brand-mark{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:var(--primary);color:#fff;font-weight:800;letter-spacing:1px}.alert-error,.alert-success{padding:12px 14px;border-radius:10px;font-size:13px}.alert-error{background:rgba(239,68,68,.14);color:#fca5a5;border:1px solid rgba(239,68,68,.28)}.alert-success{background:rgba(16,185,129,.14);color:#6ee7b7;border:1px solid rgba(16,185,129,.28)}
+.list-row{display:grid;grid-template-columns:minmax(150px,1.3fr) repeat(3,minmax(100px,1fr)) auto auto;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border);font-size:13px}.list-row:last-child{border-bottom:0}.geo-btn{margin-top:8px}@media(max-width:700px){.list-row{grid-template-columns:1fr 1fr}.list-row button{justify-self:start}}

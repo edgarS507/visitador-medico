@@ -51,6 +51,7 @@ switch ($method) {
 
     case 'PUT':
         $data = json_decode(file_get_contents('php://input'), true);
+        if (empty($data['nombre']) || empty($data['especialidad']) || !is_numeric($data['lat'] ?? null) || !is_numeric($data['lng'] ?? null)) { http_response_code(400); echo json_encode(['success'=>false,'message'=>'Nombre, especialidad, latitud y longitud son obligatorios']); exit; }
         $stmt = $pdo->prepare(
             'UPDATE medicos SET nombre=?, especialidad=?, centro_salud=?, lat=?, lng=?, sector=?
              WHERE id_medico=?'
