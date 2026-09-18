@@ -1,0 +1,4 @@
+# Directorio de datos — visitador.sqlite
+# La base de datos SQLite se crea automáticamente al primer request via db.php
+# No subir la base de datos a control de versiones si contiene datos reales
+visitador.sqlite
